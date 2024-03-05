@@ -21,6 +21,8 @@ namespace StarterAssets
 		public float RotationSpeed = 1.0f;
 		[Tooltip("Acceleration and deceleration")]
 		public float SpeedChangeRate = 10.0f;
+		[Tooltip("Max interaction distance")]
+		public float InteractionDistance = 3.5f;
 
         [Space(10)]
 		[Tooltip("The height the player can jump")]
@@ -33,6 +35,8 @@ namespace StarterAssets
 		public float JumpTimeout = 0.1f;
 		[Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
 		public float FallTimeout = 0.15f;
+		[Tooltip("Time required to pass before shooting again.")]
+		public float ShootTimeout = 0.15f;
 
 		[Header("Player Grounded")]
 		[Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
@@ -121,6 +125,7 @@ namespace StarterAssets
 
 		private void Update()
 		{
+			Mine();
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
@@ -133,23 +138,26 @@ namespace StarterAssets
             }
         }
 
-		/*
-        private void Shoot()
-        {
-            if (_input.shoot && _shootTimeoutDelta <= 0.0f)
+		private void Mine()
+		{
+			if (_input.shoot && _shootTimeoutDelta <= 0.0f)
 			{
 				_shootTimeoutDelta = ShootTimeout;
 				Vector3 f = CinemachineCameraTarget.transform.forward;
-				Vector3 initialPosition = Weapon.transform.TransformPoint(Vector3.zero);
-
-                WeaponManager.OnShoot(initialPosition, f, transform.rotation);
+				Vector3 initialPosition = CinemachineCameraTarget.transform.position;
+				if (Physics.Raycast(initialPosition, f, out var hitInfo, InteractionDistance))
+				{
+					if (hitInfo.transform.CompareTag("Mineable"))
+					{
+						hitInfo.collider.SendMessage("Mine", 10);
+					}
+				}
 			}
             if (_shootTimeoutDelta >= 0.0f)
             {
                 _shootTimeoutDelta -= Time.deltaTime;
             }
-        }
-        */
+		}
 
         private void LateUpdate()
 		{
